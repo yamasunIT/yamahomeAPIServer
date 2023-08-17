@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import boto3
@@ -37,10 +39,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+#測試用
+@app.get("/api/test", tags=["測試"])
+def test():
+	return {'statusCode': 200, 'message': "hello world"}
 
 
 #新增裝置 裝置名稱 裝置序號 裝置種類
-@app.post("/devices", tags=["裝置"])
+@app.post("/api/devices", tags=["裝置"])
 def createDevice(device: Device):
 	data = deviceDB.insert(device.dict())
 	if data > 0:
@@ -49,13 +55,13 @@ def createDevice(device: Device):
 		return {'statusCode': 400, 'message': 'failed'}
 
 #取得所有裝置
-@app.get("/devices/all", tags=["裝置"])
+@app.get("/api/devices/all", tags=["裝置"])
 def getDevices():
 	data = deviceDB.all()
 	return {'statusCode': 200, 'message': 'success', 'data': data}
 
 #取得裝置
-@app.get("/devices/{serialNo}", tags=["裝置"])
+@app.get("/api/devices/{serialNo}", tags=["裝置"])
 def getDevice(serialNo: str):
 	device = Query()
 	returnData = deviceDB.search(device.serialNo == serialNo)
@@ -64,7 +70,7 @@ def getDevice(serialNo: str):
 	else:
 		return {'statusCode': 400, 'message': 'failed'}
 #刪除裝置
-@app.delete("/devices/{serialNo}", tags=["裝置"])
+@app.delete("/api/devices/{serialNo}", tags=["裝置"])
 def deleteDevice(serialNo: str):
 	device = Query()
 	data = deviceDB.remove(device.serialNo == serialNo)
@@ -74,7 +80,7 @@ def deleteDevice(serialNo: str):
 		return {"statusCode": 400, "message": "failed"}
 
 #更新裝置
-@app.put("/devices/{serialNo}", tags=["裝置"])
+@app.put("/api/devices/{serialNo}", tags=["裝置"])
 def updateDevice(serialNo: str, name: str):
 	device = Query()
 	data = deviceDB.update({'name': name}, device.serialNo == serialNo)
@@ -87,7 +93,7 @@ def updateDevice(serialNo: str, name: str):
 
 #-----------------------------------------------------------------------------------
 #智慧插座控制
-@app.get("/smartPlugs/{serialNo}/{cmd}", tags=["智慧插座"])
+@app.get("/api/smartPlugs/{serialNo}/{cmd}", tags=["智慧插座"])
 def smartPlugs(serialNo: str, cmd: str):
 	response = client.publish(
 		topic = "$aws/things/" + serialNo + "/shadow/name/" + serialNo + "-shadow/update",
@@ -98,7 +104,7 @@ def smartPlugs(serialNo: str, cmd: str):
 
 #-----------------------------------------------------------------------------------
 #註冊
-@app.post("/users/register", tags=["使用者"])
+@app.post("/api/users/register", tags=["使用者"])
 def register(user: Signup):
 	user_dict = user.dict()
 	filtered_user = Query()
@@ -113,7 +119,7 @@ def register(user: Signup):
 			return {"statusCode": 400, "message": "failed"}
 
 #登入
-@app.post("/users/login", tags=["使用者"])
+@app.post("/api/users/login", tags=["使用者"])
 def login(user: Signin):
 	user_dict = user.dict()
 	filtered_user = Query()
@@ -124,7 +130,7 @@ def login(user: Signin):
 		return {"statusCode": 400, "message": "user was not found"}
 
 #變更密碼or名稱
-@app.put("/users/{account}", tags=["使用者"])
+@app.put("/api/users/{account}", tags=["使用者"])
 def changeInfo(account: str, password: Union[str, None] = None,  userName: Union[str, None] = None):
 	filtered_user = Query()
 	if password:
@@ -142,7 +148,7 @@ def changeInfo(account: str, password: Union[str, None] = None,  userName: Union
 
 
 #刪除帳號
-@app.delete("/users/{account}", tags=["使用者"])
+@app.delete("/api/users/{account}", tags=["使用者"])
 def deleteAcount(account: str):
 	filtered_user = Query()
 	filtered_data = userDB.remove(filtered_user.account == account)
@@ -153,3 +159,5 @@ def deleteAcount(account: str):
 
 
 
+if __name__ == '__main__':
+	uvicorn.run(app, host="0.0.0.0", port=8000)
