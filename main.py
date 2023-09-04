@@ -83,7 +83,9 @@ def deleteDevice(serialNo: str):
 @app.put("/api/devices/{serialNo}", tags=["裝置"])
 def updateDevice(serialNo: str, name: str):
 	device = Query()
+	print(name)
 	data = deviceDB.update({'name': name}, device.serialNo == serialNo)
+	print(data)
 	if len(data):
 		return {"statusCode": 200, "message": "success"}
 	else:
