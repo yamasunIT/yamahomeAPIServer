@@ -12,6 +12,7 @@ class Device(BaseModel):
 	name: str
 	serialNo: str
 	deviceType: str
+	room: str
 
 class Signup(BaseModel):
 	account: str
@@ -81,11 +82,9 @@ def deleteDevice(serialNo: str):
 
 #更新裝置
 @app.put("/api/devices/{serialNo}", tags=["裝置"])
-def updateDevice(serialNo: str, name: str):
+def updateDevice(serialNo: str, name: str, room: str):
 	device = Query()
-	print(name)
-	data = deviceDB.update({'name': name}, device.serialNo == serialNo)
-	print(data)
+	data = deviceDB.update({'name': name, 'room': room}, device.serialNo == serialNo)
 	if len(data):
 		return {"statusCode": 200, "message": "success"}
 	else:
