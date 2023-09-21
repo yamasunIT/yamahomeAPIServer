@@ -13,6 +13,7 @@ class Device(BaseModel):
 	serialNo: str
 	deviceType: str
 	room: str
+	uiType: int
 
 class Signup(BaseModel):
 	account: str
